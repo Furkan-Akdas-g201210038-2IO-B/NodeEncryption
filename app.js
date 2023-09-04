@@ -2,7 +2,8 @@
 const  express = require("express");
 const  bodyParser = require("body-parser");
 const  mongoose = require("mongoose");
-const  User = require("./entity/user") 
+const  User = require("./entity/user");
+const  md5 = require("md5");
 
 const app = express();
 const port = 3000;
@@ -36,7 +37,7 @@ app.post("/register",async function(req,res){
 
     await User.create({
         email:req.body.username,
-        password:req.body.password
+        password:md5(req.body.password)
     }).catch(err => console.log(err))
     res.render("secrets.ejs");
 
@@ -45,7 +46,7 @@ app.post("/register",async function(req,res){
 app.post("/login",async function(req,res){
 
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
 
     const loggedUser = await User.findOne({
         email:username,

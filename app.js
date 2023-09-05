@@ -3,7 +3,9 @@ const  express = require("express");
 const  bodyParser = require("body-parser");
 const  mongoose = require("mongoose");
 const  User = require("./entity/user");
-const  md5 = require("md5");
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const app = express();
 const port = 3000;
@@ -30,31 +32,32 @@ app.get("/login",function(req,res){
 
 app.get("/register", function(req,res){
     res.render("register.ejs");
-
 })  
 
 app.post("/register",async function(req,res){
 
+
+    const hash = await bcrypt.hash(req.body.password,saltRounds);
+
     await User.create({
         email:req.body.username,
-        password:md5(req.body.password)
+        password:hash
     }).catch(err => console.log(err))
-    res.render("secrets.ejs");
 
+    res.render("secrets.ejs");
 })
 
 app.post("/login",async function(req,res){
 
     const username = req.body.username;
-    const password = md5(req.body.password);
 
     const loggedUser = await User.findOne({
         email:username,
-        password:password
     }).catch((err)=>console.log(err.message));
 
+    const match = await bcrypt.compare(req.body.password,loggedUser.password)
 
-    if(loggedUser)
+    if(match)
     res.render("secrets.ejs");
     else
     res.redirect("/")
